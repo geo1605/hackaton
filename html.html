@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Mapa limitado a la ubicación actual</title>
+  </head>
+  <body onload="initMap()">
+    <h3>Mapa limitado a 40 km² alrededor de la ubicación actual</h3>
+    <div id="mapa" style="height: 90vh; width: 100%;"></div>
+
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBh82kG5OjeYtaIuzuZChe9tjfd0ZjDouQ"></script>
+    <script>
+      function initMap() {
+        // Verificar si el navegador soporta geolocalización
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(function (position) {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+
+            // Calcula los límites de 20 km de radio (aproximadamente 40 km²)
+            const kmToLat = 0.18; // Aproximación para convertir 20 km en grados de latitud
+            const kmToLng = 0.18; // Aproximación para convertir 20 km en grados de longitud
+
+            const limites = new google.maps.LatLngBounds(
+              new google.maps.LatLng(lat - kmToLat, lng - kmToLng),  // Esquina suroeste (SW)
+              new google.maps.LatLng(lat + kmToLat, lng + kmToLng)   // Esquina noreste (NE)
+            );
+
+            // Crear el mapa centrado dentro de los límites
+            const mapa = new google.maps.Map(document.getElementById("mapa"), {
+              center: { lat: lat, lng: lng }, // Centrar en la ubicación actual
+              zoom: 12, // Ajusta el nivel de zoom
+              restriction: {
+                latLngBounds: limites,
+                strictBounds: true,
+              },
+            });
+
+            // Ajustar el mapa a los límites
+            mapa.fitBounds(limites);
+          }, function () {
+            alert("No se pudo obtener la ubicación");
+          });
+        } else {
+          alert("El navegador no soporta geolocalización");
+        }
+      }
+    </script>
+
+  </body>
+</html>
