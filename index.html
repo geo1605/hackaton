@@ -19,7 +19,7 @@
             padding: 10px;
             position: absolute;
             top: 10px;
-            right: -17%; /* Fuera de la vista por defecto */
+            right: -17%;
             width: 220px;
             z-index: 1000;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
@@ -86,6 +86,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap; /* Permitir que los elementos se ajusten */
         }
 
         nav .dropdown {
@@ -120,41 +121,24 @@
             justify-content: space-around;
             background-color: #f8f9fa;
             padding: 10px 0;
+            flex-wrap: wrap; /* Permitir que los botones se ajusten */
         }
 
         footer button {
-            padding: 10px 15px;
+            flex-grow: 1;
+            padding: 15px 3px;
             border: none;
             background-color: #007BFF;
             color: white;
             cursor: pointer;
+            border-radius: 15px;
+            margin: 5px; /* Separación entre botones */
+            min-width: 100px; /* Ancho mínimo para los botones */
         }
 
         footer button:hover {
             background-color: #0056b3;
         }
-        footer {
-    display: flex;
-    justify-content: space-around;
-    background-color: transparent;
-    padding: 10px 0;
-}
-
-footer button {
-    flex-grow: 1; /* Los botones ahora ocupan más espacio */
-    padding: 15px 3px; /* Tamaño más grande */
-    border: none;
-    background-color: #007BFF;
-    color: white;
-    cursor: pointer;
-    border-radius: 15px; /* Bordes redondeados */
-    margin: 0 5px; /* Separación entre botones */
-}
-
-footer button:hover {
-    background-color: #0056b3;
-}
-
     </style>
 </head>
 <body onload="initMap()">
@@ -169,7 +153,7 @@ footer button:hover {
             <div class="dropdown">
                 <button class="dropbtn">Menú</button>
                 <div class="dropdown-content">
-                    <a href="intinerario.html">intinerario</a>
+                    <a href="intinerario.html">Itinerario</a>
                     <a href="#">Favoritos</a>
                     <a href="#">Por visitar</a>
                 </div>
@@ -189,11 +173,11 @@ footer button:hover {
 
     <!-- Footer con botones de categorías -->
     <footer>
-        <button style="border-radius: 15px; " onclick="filtrarLugares('tourist_attraction')">Atracciones</button>
-        <button style="border-radius: 15px; " onclick="filtrarLugares('park')">Parques</button>
-        <button style="border-radius: 15px; " onclick="filtrarLugares('museum')">Museos</button>
-        <button style="border-radius: 15px; " onclick="filtrarLugares('amusement_park')">Entretenimiento</button>
-        <button style="border-radius: 15px; " onclick="filtrarLugares('historical')">Históricos</button>
+        <button onclick="filtrarLugares('tourist_attraction')">Atracciones</button>
+        <button onclick="filtrarLugares('park')">Parques</button>
+        <button onclick="filtrarLugares('museum')">Museos</button>
+        <button onclick="filtrarLugares('amusement_park')">Entretenimiento</button>
+        <button onclick="filtrarLugares('historical')">Históricos</button>
     </footer>
 
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBh82kG5OjeYtaIuzuZChe9tjfd0ZjDouQ&libraries=places"></script>
@@ -202,8 +186,8 @@ footer button:hover {
         let mapa;
         let servicioLugares;
         let marcadores = [];
-        let direccionesRenderer = null; // Para limpiar las rutas anteriores
-        let lugares = []; // Array para almacenar los lugares
+        let direccionesRenderer = null; 
+        let lugares = []; 
 
         function initMap() {
             if (navigator.geolocation) {
@@ -219,9 +203,16 @@ footer button:hover {
 
                     // Crear servicio para obtener lugares
                     servicioLugares = new google.maps.places.PlacesService(mapa);
-
-                    // Obtener recomendaciones iniciales de lugares turísticos
                     buscarLugares({ location: { lat: lat, lng: lng }, radius: 20000 });
+
+                    // Actualizar ubicación cada 60 segundos
+                    setInterval(() => {
+                        navigator.geolocation.getCurrentPosition((pos) => {
+                            const newLat = pos.coords.latitude;
+                            const newLng = pos.coords.longitude;
+                            mapa.setCenter({ lat: newLat, lng: newLng });
+                        });
+                    }, 60000);
                 }, function (error) {
                     console.error("Error al obtener geolocalización: ", error);
                 });
@@ -291,71 +282,71 @@ footer button:hover {
 
         // Mostrar lugares en el menú
         function mostrarLugares(lugares) {
-    const infoDiv = document.getElementById('place-info');
-    infoDiv.innerHTML = '';
+            const infoDiv = document.getElementById('place-info');
+            infoDiv.innerHTML = '';
 
-    lugares.forEach(lugar => {
-        const lugarDiv = document.createElement('div');
+            lugares.forEach(lugar => {
+                const lugarDiv = document.createElement('div');
 
-        // Añadir imagen si está disponible
-        if (lugar.photos && lugar.photos.length > 0) {
-            const img = document.createElement('img');
-            img.className = 'place-image';
-            img.src = lugar.photos[0].getUrl({ maxWidth: 200, maxHeight: 150 });
-            lugarDiv.appendChild(img);
+                // Añadir imagen si está disponible
+                if (lugar.photos && lugar.photos.length > 0) {
+                    const img = document.createElement('img');
+                    img.className = 'place-image';
+                    img.src = lugar.photos[0].getUrl({ maxWidth: 200, maxHeight: 150 });
+                    lugarDiv.appendChild(img);
+                }
+
+                // Añadir dirección
+                const direccion = document.createElement('p');
+                direccion.textContent = lugar.vicinity ? `Dirección: ${lugar.vicinity}` : 'Dirección no disponible';
+                lugarDiv.appendChild(direccion);
+
+                // Añadir calificación si está disponible
+                if (lugar.rating) {
+                    const calificacion = document.createElement('p');
+                    calificacion.textContent = `Calificación: ${lugar.rating} / 5`;
+                    lugarDiv.appendChild(calificacion);
+                }
+
+                // Añadir número de opiniones si está disponible
+                if (lugar.user_ratings_total) {
+                    const totalOpiniones = document.createElement('p');
+                    totalOpiniones.textContent = `Opiniones: ${lugar.user_ratings_total}`;
+                    lugarDiv.appendChild(totalOpiniones);
+                }
+
+                // Añadir horario de apertura si está disponible
+                if (lugar.opening_hours && lugar.opening_hours.isOpen()) {
+                    const abiertoAhora = document.createElement('p');
+                    abiertoAhora.textContent = 'Abierto ahora';
+                    lugarDiv.appendChild(abiertoAhora);
+                } else {
+                    const cerradoAhora = document.createElement('p');
+                    cerradoAhora.textContent = 'Cerrado en este momento';
+                    lugarDiv.appendChild(cerradoAhora);
+                }
+
+                // Añadir botón al final
+                const button = document.createElement('a');
+                button.className = 'place-button';
+                button.textContent = lugar.name;
+                lugarDiv.appendChild(button);
+
+                infoDiv.appendChild(lugarDiv);
+
+                // Añadir evento de click al botón
+                button.addEventListener('click', function () {
+                    const lat = lugar.geometry.location.lat();
+                    const lng = lugar.geometry.location.lng();
+                    obtenerDirecciones(lat, lng);
+                });
+            });
         }
-
-        // Añadir dirección
-        const direccion = document.createElement('p');
-        direccion.textContent = lugar.vicinity ? `Dirección: ${lugar.vicinity}` : 'Dirección no disponible';
-        lugarDiv.appendChild(direccion);
-
-        // Añadir calificación si está disponible
-        if (lugar.rating) {
-            const calificacion = document.createElement('p');
-            calificacion.textContent = `Calificación: ${lugar.rating} / 5`;
-            lugarDiv.appendChild(calificacion);
-        }
-
-        // Añadir número de opiniones si está disponible
-        if (lugar.user_ratings_total) {
-            const totalOpiniones = document.createElement('p');
-            totalOpiniones.textContent = `Opiniones: ${lugar.user_ratings_total}`;
-            lugarDiv.appendChild(totalOpiniones);
-        }
-
-        // Añadir horario de apertura si está disponible
-        if (lugar.opening_hours && lugar.opening_hours.isOpen()) {
-            const abiertoAhora = document.createElement('p');
-            abiertoAhora.textContent = 'Abierto ahora';
-            lugarDiv.appendChild(abiertoAhora);
-        } else {
-            const cerradoAhora = document.createElement('p');
-            cerradoAhora.textContent = 'Cerrado en este momento';
-            lugarDiv.appendChild(cerradoAhora);
-        }
-
-        // Añadir botón al final
-        const button = document.createElement('a');
-        button.className = 'place-button';
-        button.textContent = lugar.name;
-        lugarDiv.appendChild(button);
-
-        infoDiv.appendChild(lugarDiv);
-
-        // Añadir evento de click al botón
-        button.addEventListener('click', function () {
-            const lat = lugar.geometry.location.lat();
-            const lng = lugar.geometry.location.lng();
-            obtenerDirecciones(lat, lng);
-        });
-    });
-}
 
         // Obtener direcciones de un lugar
         function obtenerDirecciones(lat, lng) {
             if (direccionesRenderer) {
-                direccionesRenderer.setMap(null); // Limpiar ruta anterior si existe
+                direccionesRenderer.setMap(null); 
             }
             direccionesRenderer = new google.maps.DirectionsRenderer();
             direccionesRenderer.setMap(mapa);
@@ -378,23 +369,6 @@ footer button:hover {
                 }
             });
         }
-        function obtenerDatosLugar(placeId) {
-    const service = new google.maps.places.PlacesService(mapa);
-    service.getDetails({ placeId: placeId }, (place, status) => {
-        if (status === google.maps.places.PlacesServiceStatus.OK) {
-            // Aquí obtienes datos como popular times, ratings, etc.
-            const popularTimes = place.popularTimes; // Solo si es accesible
-            const rating = place.rating;
-            const totalReviews = place.user_ratings_total;
-
-            // Usar estos datos para hacer predicciones con la IA
-            console.log(`Lugar: ${place.name}, Rating: ${rating}, Opiniones: ${totalReviews}`);
-            predecirFlujoDePersonas(placeId, popularTimes, totalReviews, rating);
-        }
-    });
-}
-
     </script>
-    
 </body>
 </html>
